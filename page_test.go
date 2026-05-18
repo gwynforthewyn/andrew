@@ -67,7 +67,7 @@ func TestMultipleMetaTagsPopulatedWithExpectedElements(t *testing.T) {
 	}
 }
 
-func TestPageFindsIncludeFiles(t *testing.T) {
+func TestPageFindsPartialFiles(t *testing.T) {
 	t.Parallel()
 	expected := string([]byte(`
 <!DOCTYPE html>
@@ -79,12 +79,12 @@ func TestPageFindsIncludeFiles(t *testing.T) {
 </body>
 `))
 
-	testPage := []byte(`{{ .AndrewIncludeFile }}
+	testPage := []byte(`{{ .AndrewPartialFile }}
 <body>
 </body>
 `)
 
-	includeFile := []byte(`
+	partialFile := []byte(`
 <!DOCTYPE html>
 <head>
   <title>index title</title>
@@ -95,8 +95,8 @@ func TestPageFindsIncludeFiles(t *testing.T) {
 		"index.html": &fstest.MapFile{
 			Data: testPage,
 		},
-		".AndrewIncludeFile": &fstest.MapFile{
-			Data: includeFile,
+		".AndrewPartialFile": &fstest.MapFile{
+			Data: partialFile,
 		},
 	}}
 
@@ -110,7 +110,7 @@ func TestPageFindsIncludeFiles(t *testing.T) {
 		t.Error(cmp.Diff(expected, page.Content))
 	}
 }
-func TestIncludeFileCanBeFoundWithNonDefaultIncludeName(t *testing.T) {
+func TestPartialFileCanBeFoundWithNonDefaultPartialName(t *testing.T) {
 	t.Parallel()
 	expected := string([]byte(`
 <!DOCTYPE html>
@@ -122,12 +122,12 @@ func TestIncludeFileCanBeFoundWithNonDefaultIncludeName(t *testing.T) {
 </body>
 `))
 
-	testPage := []byte(`{{ .AndrewIncludeFile.test }}
+	testPage := []byte(`{{ .AndrewPartialFile.test }}
 <body>
 </body>
 `)
 
-	includeFile := []byte(`
+	partialFile := []byte(`
 <!DOCTYPE html>
 <head>
   <title>index title</title>
@@ -138,8 +138,8 @@ func TestIncludeFileCanBeFoundWithNonDefaultIncludeName(t *testing.T) {
 		"index.html": &fstest.MapFile{
 			Data: testPage,
 		},
-		".AndrewIncludeFile.test": &fstest.MapFile{
-			Data: includeFile,
+		".AndrewPartialFile.test": &fstest.MapFile{
+			Data: partialFile,
 		},
 	}}
 
@@ -154,7 +154,7 @@ func TestIncludeFileCanBeFoundWithNonDefaultIncludeName(t *testing.T) {
 	}
 }
 
-func TestMultipleIncludeFilesCanBeFoundAndInserted(t *testing.T) {
+func TestMultiplePartialFilesCanBeFoundAndInserted(t *testing.T) {
 	t.Parallel()
 	expected := string([]byte(`
 <!DOCTYPE html>
@@ -167,13 +167,13 @@ func TestMultipleIncludeFilesCanBeFoundAndInserted(t *testing.T) {
 roflcopter
 `))
 
-	testPage := []byte(`{{ .AndrewIncludeFile.test }}
+	testPage := []byte(`{{ .AndrewPartialFile.test }}
 <body>
 </body>
-{{ .AndrewIncludeFile.test2 }}
+{{ .AndrewPartialFile.test2 }}
 `)
 
-	includeFile := []byte(`
+	partialFile := []byte(`
 <!DOCTYPE html>
 <head>
   <title>index title</title>
@@ -184,10 +184,10 @@ roflcopter
 		"index.html": &fstest.MapFile{
 			Data: testPage,
 		},
-		".AndrewIncludeFile.test": &fstest.MapFile{
-			Data: includeFile,
+		".AndrewPartialFile.test": &fstest.MapFile{
+			Data: partialFile,
 		},
-		".AndrewIncludeFile.test2": &fstest.MapFile{
+		".AndrewPartialFile.test2": &fstest.MapFile{
 			Data: []byte("roflcopter"),
 		},
 	}}
@@ -203,45 +203,7 @@ roflcopter
 	}
 }
 
-// func TestIncludeFileCanRenderVariables(t *testing.T) {
-// 	t.Parallel()
-
-// 	testPage := []byte(`{{ .AndrewIncludeFile meta-name="roflcopter" content="soisoi"}}
-// <body>
-// </body>
-// `)
-
-// 	includeFile := []byte(`
-// <!DOCTYPE html>
-// <head>
-//   <title>index title</title>
-// </head>
-// `)
-
-// 	server := Server{SiteFiles: fstest.MapFS{
-// 		"index.html": &fstest.MapFile{
-// 			Data: testPage,
-// 		},
-// 		".AndrewIncludeFile": &fstest.MapFile{
-// 			Data: includeFile,
-// 		},
-// 	}}
-
-// 	page, err := server.NewPage("index.html")
-
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-
-// 	if page.Content != string(expected) {
-// 		t.Errorf("Expected:\n%s\nReceived:\n%s", expected, page.Content)
-// 	}
-// }
-
-// Verify that the regular expression used for finding Partials is working well.
-// Pulling these into their own test is completely worth it; the integration style
-// tests don't get this specific easily.
-func TestIncludeREPattern(t *testing.T) {
+func TestPartialREPattern(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       string
@@ -249,38 +211,38 @@ func TestIncludeREPattern(t *testing.T) {
 		wantCapture string
 	}{
 		{
-			name:        "matches basic include",
-			input:       "{{ .AndrewIncludeFile }}",
+			name:        "matches basic ]",
+			input:       "{{ .AndrewPartialFile }}",
 			wantMatch:   true,
-			wantCapture: ".AndrewIncludeFile",
+			wantCapture: ".AndrewPartialFile",
 		},
 		{
-			name:        "matches include with single extension",
-			input:       "{{ .AndrewIncludeFile.test }}",
+			name:        "matches partial with single extension",
+			input:       "{{ .AndrewPartialFile.test }}",
 			wantMatch:   true,
-			wantCapture: ".AndrewIncludeFile.test",
+			wantCapture: ".AndrewPartialFile.test",
 		},
 		{
-			name:        "matches include with multiple extensions",
-			input:       "{{ .AndrewIncludeFile.test.foo }}",
+			name:        "matches partial with multiple extensions",
+			input:       "{{ .AndrewPartialFile.test.foo }}",
 			wantMatch:   true,
-			wantCapture: ".AndrewIncludeFile.test.foo",
+			wantCapture: ".AndrewPartialFile.test.foo",
 		},
 		{
 			name:        "does not match without spaces",
-			input:       "{{.AndrewIncludeFile}}",
+			input:       "{{.AndrewPartialFile}}",
 			wantMatch:   false,
 			wantCapture: "",
 		},
 		{
 			name:        "does not match with extra spaces",
-			input:       "{{  .AndrewIncludeFile }}",
+			input:       "{{  .AndrewPartialFile }}",
 			wantMatch:   false,
 			wantCapture: "",
 		},
 		{
 			name:        "does not match partial name",
-			input:       "{{ .AndrewInclude }}",
+			input:       "{{ .AndrewPartial }}",
 			wantMatch:   false,
 			wantCapture: "",
 		},
@@ -288,7 +250,7 @@ func TestIncludeREPattern(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			parser := getIncludeParser()
+			parser := getPartialParser()
 			matches := parser.regex.FindStringSubmatch(tt.input)
 
 			gotMatch := matches != nil
@@ -297,7 +259,7 @@ func TestIncludeREPattern(t *testing.T) {
 			}
 
 			// It's right below that we actually test something. This test is why
-			// includeRE and andrewIncludeFileCaptureGroup are available outside of a specific function.
+			// partialRE and AndrewPartialFileCaptureGroup are available outside of a specific function.
 			if tt.wantMatch && matches != nil {
 				captureIndex := parser.regex.SubexpIndex(parser.fileParentKey)
 				results := matches[captureIndex]
@@ -351,7 +313,7 @@ func TestDataTagParsing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := parseIncludeDataTags(tt.dataTags)
+			res := parsePartialDataTags(tt.dataTags)
 
 			if !maps.Equal(res, tt.want) {
 				t.Errorf("received = %v || want %v", res, tt.want)
@@ -360,50 +322,50 @@ func TestDataTagParsing(t *testing.T) {
 		})
 	}
 }
-func TestIncludePatternCapturesData(t *testing.T) {
+func TestPartialPatternCapturesData(t *testing.T) {
 	tests := []struct {
 		name         string
 		testPage     []byte
-		includeFiles map[string][]byte
+		partialFiles map[string][]byte
 		expected     string
 	}{
 		{
-			name:     "include with single data attribute",
-			testPage: []byte("{{ .AndrewIncludeFile metaname=\"true\" }}\n"),
-			includeFiles: map[string][]byte{
-				".AndrewIncludeFile": []byte("<p>Name: {{ .metaname }}</p>"),
+			name:     "patial with single data attribute",
+			testPage: []byte("{{ .AndrewPartialFile metaname=\"true\" }}\n"),
+			partialFiles: map[string][]byte{
+				".AndrewPartialFile": []byte("<p>Name: {{ .metaname }}</p>"),
 			},
 			expected: "<p>Name: true</p>\n",
 		},
 		{
-			name:     "include with multiple data attributes",
-			testPage: []byte("{{ .AndrewIncludeFile metaname='Bob' metadate=\"2006-03-04\" }}\n"),
-			includeFiles: map[string][]byte{
-				".AndrewIncludeFile": []byte("<p>{{ .metaname }} on '{{ .metadate }}'</p>"),
+			name:     "partial with multiple data attributes",
+			testPage: []byte("{{ .AndrewPartialFile metaname='Bob' metadate=\"2006-03-04\" }}\n"),
+			partialFiles: map[string][]byte{
+				".AndrewPartialFile": []byte("<p>{{ .metaname }} on '{{ .metadate }}'</p>"),
 			},
 			expected: "<p>'Bob' on '2006-03-04'</p>\n",
 		},
 		{
 			name:     "last value wins when key repeated",
-			testPage: []byte("{{ .AndrewIncludeFile metaname=\"true\" metaname=\"false\" }}\n"),
-			includeFiles: map[string][]byte{
-				".AndrewIncludeFile": []byte("<p>{{ .metaname }}</p>"),
+			testPage: []byte("{{ .AndrewPartialFile metaname=\"true\" metaname=\"false\" }}\n"),
+			partialFiles: map[string][]byte{
+				".AndrewPartialFile": []byte("<p>{{ .metaname }}</p>"),
 			},
 			expected: "<p>false</p>\n",
 		},
 		{
-			name:     "include files provided with data tags that don't include anywhere doesn't blow up the parser",
-			testPage: []byte("{{ .AndrewIncludeFile metaname=true }}\n"),
-			includeFiles: map[string][]byte{
-				".AndrewIncludeFile": []byte("<p>Static content</p>"),
+			name:     "partial files provided with data tags that don't partial anywhere doesn't blow up the parser",
+			testPage: []byte("{{ .AndrewPartialFile metaname=true }}\n"),
+			partialFiles: map[string][]byte{
+				".AndrewPartialFile": []byte("<p>Static content</p>"),
 			},
 			expected: "<p>Static content</p>\n",
 		},
 		{
 			name:     "Values can have spaces",
-			testPage: []byte("{{ .AndrewIncludeFile metaname=\"true beans\" }}\n"),
-			includeFiles: map[string][]byte{
-				".AndrewIncludeFile": []byte("<p>{{ .metaname }}</p>"),
+			testPage: []byte("{{ .AndrewPartialFile metaname=\"true beans\" }}\n"),
+			partialFiles: map[string][]byte{
+				".AndrewPartialFile": []byte("<p>{{ .metaname }}</p>"),
 			},
 			expected: "<p>true beans</p>\n",
 		},
@@ -417,7 +379,7 @@ func TestIncludePatternCapturesData(t *testing.T) {
 				},
 			}
 
-			for path, content := range tt.includeFiles {
+			for path, content := range tt.partialFiles {
 				mapFS[path] = &fstest.MapFile{
 					Data: content,
 				}
